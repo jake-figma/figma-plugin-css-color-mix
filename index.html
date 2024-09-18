@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS color-mix()</title>
+  <style>
+    :root {
+      --color-a: #FF0000;
+      --color-b: #00FF00;
+      --ratio: 50;
+      --space: oklab;
+      --computed: #fff
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-weight: bold;
+    }
+
+    body {
+      --color: color-mix(in var(--space), var(--color-a), var(--color-b) calc(var(--ratio) * 1%));
+      background: var(--color);
+      display: flex;
+    }
+
+    #preview {
+      background: var(--gradient);
+      border-left: 2px solid color-mix(in lch, var(--computed), #000 40%);
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      font-family: monospace;
+      font-size: 0.6rem;
+      height: 100%;
+      justify-content: safe center;
+      overflow: auto;
+
+
+      >span {
+        display: block;
+        font-weight: normal;
+        padding: 0.5rem;
+
+        >span {
+          color: var(--color);
+          filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
+          mix-blend-mode: luminosity;
+          white-space: pre;
+        }
+      }
+    }
+
+    a {
+      color: black;
+    }
+
+    main {
+      background: white;
+      display: flex;
+      width: 240px;
+    }
+
+    main,
+    #preview {
+      height: 100%;
+    }
+
+    section {
+      align-items: center;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.5rem;
+
+      >div {
+        align-content: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        width: 100%;
+
+        >* {
+          flex: 1;
+        }
+
+        >p {
+          /* color: color-mix(in oklab, var(--computed), #fff 70%);
+          background-color: color-mix(in lch, var(--computed), #000 40%); */
+          border-radius: 1rem;
+          flex-basis: 100%;
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          margin: 0;
+          width: 100%;
+        }
+      }
+
+      >div#output-css {
+        flex-direction: column;
+      }
+    }
+
+    input[type="range"] {
+      appearance: none;
+      border: none;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: var(--gradient);
+      border-radius: 0.25rem;
+      border: 1px solid black;
+      height: calc(100% - 0.5rem);
+    }
+
+    input[type="range"]::-moz-range-track {
+      background: var(--gradient);
+      border-radius: 0.25rem;
+      border: 1px solid black;
+      height: calc(100% - 0.5rem);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      background: var(--color);
+      border-radius: 0.25rem;
+      border: 1px solid black;
+      margin-top: -0.25rem;
+      height: calc(100% + 0.5rem);
+      width: 0.5rem;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      background: var(--color);
+      border-radius: 0.25rem;
+      border: 1px solid black;
+      margin-top: -0.25rem;
+      height: calc(100% + 0.5rem);
+      width: 0.5rem;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      /* background-color: color-mix(in oklab, var(--computed), #fff 90%); */
+      border: 1px solid currentColor;
+      border-radius: 0.25rem;
+      /* color: color-mix(in lch, var(--computed), #000 40%); */
+      font-size: 0.8rem;
+      /* font-weight: bold; */
+
+      &:focus-visible {
+        outline: none;
+        /* box-shadow: 0 0 0 1px currentColor; */
+      }
+    }
+
+    button,
+    input,
+    select {
+      height: 1.6rem;
+      margin: 0;
+    }
+
+    select {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #space,
+    #hue {
+      width: 50%;
+    }
+
+    button,
+    input[type="color"] {
+      cursor: pointer;
+    }
+
+    #collections {
+      flex: 3;
+      width: 75%;
+    }
+
+    #generate-type {
+      flex: 4;
+      flex-basis: 100%;
+      width: 100%;
+    }
+
+    input {
+      width: auto;
+    }
+
+    button {
+      background: var(--color);
+      border-radius: 1rem;
+      margin-top: auto;
+      width: 100%;
+
+      span {
+        color: var(--color);
+        filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
+        mix-blend-mode: luminosity;
+      }
+    }
+
+    input[type="text"] {
+      font-family: monospace;
+      flex: initial;
+      margin: 0;
+      width: 100%;
+    }
+
+    canvas {
+      background: color-mix(in var(--space), var(--color-a), var(--color-b) calc(var(--ratio) * 1%));
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <section>
+      <div>
+        <p>Color Mix</p>
+        <!-- <p style="background: var(--color)">&nbsp</p> -->
+        <input id="color-a" type="color" />
+        <input id="ratio" type="range" min="0" max="100" step="1" />
+        <input id="color-b" type="color" />
+      </div>
+      <div>
+        <p>Color Space</p>
+        <!-- <p style="background: var(--gradient)">&nbsp</p> -->
+        <select id="space"></select>
+        <select id="hue"></select>
+      </div>
+
+      <div>
+        <p>Output (<a href="#" id="css">CSS</a>)</p>
+        <select id="generate-type">
+          <option value="variables">Variables</option>
+          <option value="swatches">Swatches</option>
+          <option value="gradient">Gradient</option>
+          <option value="fill">Fill</option>
+        </select>
+        <input title="stops" id="stops" type="number" value="10" min="1" max="1000" step="1" />
+        <select id="collections"></select>
+      </div>
+
+      <button id="generate">Generate</button>
+    </section>
+  </main>
+
+  <div id="preview" style="display: none"></div>
+
+  <script>
+    const colorA = document.getElementById("color-a");
+    const colorB = document.getElementById("color-b");
+    const ratio = document.getElementById("ratio");
+    const space = document.getElementById("space");
+    const preview = document.getElementById("preview");
+    const css = document.getElementById("css");
+
+    const generateSelect = document.getElementById("generate-type");
+    const generate = document.getElementById("generate");
+    const stops = document.getElementById("stops");
+    const collectionsSelect = document.getElementById("collections");
+    const hue = document.getElementById("hue");
+
+    const gradientsNoWork = ["display-p3", "a98-rgb", "prophoto-rgb", "rec2020"];
+    const rectangularColorSpaces = [
+      "srgb",
+      "srgb-linear",
+      // "display-p3",
+      // "a98-rgb",
+      // "prophoto-rgb",
+      // "rec2020",
+      "lab",
+      "oklab",
+      "xyz",
+      // "xyz-d50",
+      // "xyz-d65"
+    ].filter((a) => !gradientsNoWork.includes(a));
+    const polarColorSpaces = ["hsl", "hwb", "lch", "oklch"];
+    const hueInterpolationMethods = [
+      "shorter hue",
+      "longer hue",
+      "increasing hue",
+      "decreasing hue"
+    ];
+
+
+    space.innerHTML = `<optgroup label="Polar Color Spaces">
+${polarColorSpaces.map((space) => `<option value="${space}">${space}</option>`)}
+</optgroup>
+<optgroup label="Rectangular Color Spaces">
+${rectangularColorSpaces.map(
+      (space) => `<option value="${space}">${space}</option>`
+    )}
+</optgroup>`;
+    hue.innerHTML = hueInterpolationMethods.map(
+      (method) => `<option value="${method}">${method}</option>`
+    );
+
+    colorA.value = "#FFFF00";
+    colorB.value = "#0000FF";
+    ratio.value = "50";
+    space.value = "oklch";
+    hue.value = hueInterpolationMethods[0];
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { colorSpace: "display-p3" });
+    canvas.height = canvas.width = 1;
+    document.body.appendChild(canvas);
+    let colors = [];
+    let color = { r: 0, g: 0, b: 0 };
+
+    window.onmessage = ({ data: { pluginMessage }, }) => {
+      if (pluginMessage.type === "INITIALIZE") {
+        initialize(pluginMessage);
+      } else if (pluginMessage.type === "COLLECTIONS") {
+        updateCollections(pluginMessage.collections)
+      } else if (pluginMessage.type === "FILLS") {
+        updateFills(pluginMessage.fills)
+      } else {
+        console.log({ pluginMessage })
+      }
+    }
+
+    css.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (preview.style.display === "none") {
+        showCSS();
+      } else {
+        hideCSS();
+      }
+    })
+
+    function hideCSS() {
+      preview.style.display = "none";
+      parent.postMessage({
+        pluginMessage: {
+          type: "RESIZE",
+          height: 240,
+          width: 240
+        },
+      }, "*");
+    }
+    function showCSS() {
+      parent.postMessage({
+        pluginMessage: {
+          type: "RESIZE",
+          height: 240,
+          width: 480
+        },
+      }, "*");
+      setTimeout(() => {
+        preview.style.display = "flex";
+      }, 50);
+    }
+
+    function updateCollections(collections) {
+      const value = collectionsSelect.value || (collections.length ? collections[0].id : "__CREATE_NEW_COLLECTION__");
+      collectionsSelect.innerHTML = `<option value="__CREATE_NEW_COLLECTION__">+ New Variable Collection</option>${collections.map((collection) => `<option value="${collection.id}">${collection.name}</option>`).join("")}`
+      if (collectionsSelect.innerHTML.match(value)) {
+        collectionsSelect.value = value;
+      }
+    }
+
+    function updateFills(fills) {
+      if (fills.length) {
+        colorA.value = rgbToHex(fills[0])
+        if (fills[1]) {
+          colorB.value = rgbToHex(fills[1])
+        }
+      }
+      update();
+    }
+
+    function handleSelectChange() {
+      collectionsSelect.style.display = generateSelect.value === "variables" ? "block" : "none";
+      stops.style.display = generateSelect.value === "fill" ? "none" : "flex";
+      if (generateSelect.value === "variables") {
+        generate.innerHTML = "<span>Create Variables</span>";
+      } else if (generateSelect.value === "fill") {
+        generate.innerHTML = "<span>Fill with Color</span>";
+      } else if (generateSelect.value === "gradient") {
+        generate.innerHTML = "<span>Fill with Gradient</span>";
+      } else if (generateSelect.value === "swatches") {
+        generate.innerHTML = "<span>Generate Swatches</span>";
+      }
+      update();
+    }
+
+    function initialize({ collections, fills }) {
+      updateCollections(collections);
+      updateFills(fills);
+
+      update();
+
+      handleSelectChange()
+
+
+      generateSelect.addEventListener("change", handleSelectChange);
+
+      generate.addEventListener("click", () => {
+        const type = generateSelect.value.toUpperCase();
+        parent.postMessage({
+          pluginMessage: {
+            payload: {
+              color,
+              colors,
+              ratio: ratio.value,
+              space: document.body.style.getPropertyValue("--space"),
+              colorA: colorA.value,
+              colorB: colorB.value
+            },
+            type,
+            collection: collectionsSelect.value
+          },
+        }, "*");
+      });
+
+      colorA.addEventListener("input", update);
+      colorB.addEventListener("input", update);
+      ratio.addEventListener("input", update);
+      space.addEventListener("change", update);
+      hue.addEventListener("change", update);
+      stops.addEventListener("input", update);
+    }
+
+
+    function update() {
+      document.body.style.setProperty("--color-a", colorA.value);
+      document.body.style.setProperty("--color-b", colorB.value);
+      document.body.style.setProperty("--ratio", ratio.value);
+      document.body.style.setProperty(
+        "--ratio-a",
+        50 - Math.min(50, parseInt(ratio.value))
+      );
+      document.body.style.setProperty(
+        "--ratio-b",
+        100 - (Math.max(50, parseInt(ratio.value)) - 50)
+      );
+      const isPolar = polarColorSpaces.includes(space.value);
+      hue.style.display = isPolar ? "inline" : "none";
+      const spaceValue = isPolar ? `${space.value} ${hue.value}` : space.value;
+      document.body.style.setProperty("--space", spaceValue);
+      const gradientArgs = [];
+      gradientArgs.push(`90deg in ${spaceValue}`)
+      gradientArgs.push("var(--color-a)")
+      gradientArgs.push("var(--color-b)")
+      document.body.style.setProperty(
+        "--gradient",
+        `linear-gradient(${gradientArgs.join(",")})`
+      );
+      const colorString = window.getComputedStyle(document.body).backgroundColor;
+      document.body.style.setProperty(
+        "--computed",
+        colorString
+      );
+
+      context.fillStyle = colorString;
+      context.fillRect(0, 0, 1, 1);
+      const {
+        data: [r, g, b, a]
+      } = context.getImageData(0, 0, 1, 1);
+      color = { r, g, b, }
+
+      const gradient = window.getComputedStyle(
+        preview
+      ).backgroundImage;
+      colors = [];
+      const count = parseInt(stops.value);
+      for (let i = 0; i <= count; i++) {
+        canvas.style.setProperty("--ratio", (i / count) * 100);
+        context.fillStyle = window.getComputedStyle(canvas).backgroundColor;
+        context.fillRect(0, 0, 1, 1);
+        const {
+          data: [r, g, b, a]
+        } = context.getImageData(0, 0, 1, 1);
+        colors.push({
+          space: spaceValue,
+          colorA: colorA.value,
+          colorB: colorB.value,
+          percent: i,
+          rgb: { r, g, b },
+        });
+      }
+
+      // cssComputed.value = colorString;
+      // cssBackgroundColor.value = `color-mix(in ${spaceValue}, ${colorA.value}, ${colorB.value} ${ratio.value}%)`;
+      // cssBackgroundImage.value = `linear-gradient(90deg in ${spaceValue}, ${colorA.value}, ${colorB.value})`;
+      if (generateSelect.value === "fill") {
+        preview.innerHTML = `
+          <span style="background:var(--color)"><span style="color:var(--color)">color-mix(in ${spaceValue},
+  ${colorA.value}, ${colorB.value} ${ratio.value}%
+)</span></span>
+          <span style="background:var(--color)"><span style="color:var(--color)">/* computed */
+${colorString}</span></span>`;
+      } else if (generateSelect.value === "gradient") {
+        preview.innerHTML = `<span style="background:var(--color)"><span style="color:var(--color)">linear-gradient(
+  90deg in ${spaceValue},
+  ${colorA.value}, ${colorB.value}
+)</span></span>`;
+      } else if (generateSelect.value === "variables" || generateSelect.value === "swatches") {
+        preview.innerHTML = colors.map(({ percent }) => (`<span style="--color: color-mix(in ${spaceValue}, ${colorA.value}, ${colorB.value} ${percent / (colors.length - 1) * 100}%); background: var(--color)"><span style="color: var(--color)">color-mix(in ${spaceValue},
+  ${colorA.value}, ${colorB.value} ${Math.round(percent / (colors.length - 1) * 100000) / 1000}%
+)</span></span>`)).join("\n");
+      }
+    }
+
+    function rgbToHex({ r, g, b }) {
+      return "#" + [r, g, b].map(c => Math.round(c * 255).toString(16).padStart(2, "0")).join("")
+    }
+  </script>
+</body>
+
+</html>
