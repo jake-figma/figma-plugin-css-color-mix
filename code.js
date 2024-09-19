@@ -1,60 +1,188 @@
 console.clear();
 
 const CLIENT_STORAGE_KEY = "css-color-mix";
+const SHAPE_HEIGHT = 50;
+const SHAPE_WIDTH = 500;
+const WINDOW_HEIGHT = 300;
+const WINDOW_WIDTH_SMALL = 240;
+const WINDOW_WIDTH_LARGE = 480;
 
-start();
+initialize();
 
-async function getCollections() {
-  return (await figma.variables.getLocalVariableCollectionsAsync()).flatMap(
-    (collection) => {
-      if (collection.remote) {
-        return [];
-      }
-      return [
-        {
-          id: collection.id,
-          name: collection.name,
-          key: collection.id + "-" + collection.name,
-        },
-      ];
+async function initialize() {
+  const settings = await clientStorageRetrieveSettings();
+  figma.showUI(__html__, {
+    height: WINDOW_HEIGHT,
+    width: settings.preview === false ? WINDOW_WIDTH_SMALL : WINDOW_WIDTH_LARGE,
+    themeColors: true,
+  });
+
+  figma.ui.onmessage = async (message) => {
+    if (message.type === "RESIZE") {
+      figma.ui.resize(message.width, message.height);
+    } else if (message.type === "SETTINGS") {
+      clientStorageSaveSettings(message.settings);
+    } else if (message.type === "GRADIENT" || message.type === "FILL") {
+      actionFillShapeWithColorOrGradient(message);
+    } else if (message.type === "SWATCHES") {
+      actionCreateSwatches(message);
+    } else if (message.type === "VARIABLES") {
+      actionCreateVariables(message);
+    } else {
+      console.log(message);
     }
-  );
-}
+  };
 
-async function start() {
-  figma.showUI(__html__, { height: 240, width: 240 });
-
-  let collections = await getCollections();
-  setInterval(async () => {
-    const collections2 = await getCollections();
-    if (
-      collections.map((collection) => collection.key).join("-") !==
-      collections2.map((collection) => collection.key).join("-")
-    ) {
-      collections = collections2;
-      figma.ui.postMessage({ type: "COLLECTIONS", collections });
-    }
-  }, 1000);
-  const fills = getFills();
-  const settings = await getSettings();
-  figma.ui.postMessage({ type: "INITIALIZE", collections, fills, settings });
-  figma.on("selectionchange", () => {
-    const fills = getFills();
+  figma.on("selectionchange", async () => {
+    const fills = await getFillsFromCurrentSelection();
     if (fills.length) {
       figma.ui.postMessage({ type: "FILLS", fills });
     }
   });
+
+  let collections = await getLocalVariableCollections();
+  setInterval(async () => {
+    const latestCollections = await getLocalVariableCollections();
+    if (variableCollectionsHaveChanged(collections, latestCollections)) {
+      collections = latestCollections;
+      figma.ui.postMessage({ type: "COLLECTIONS", collections });
+    }
+  }, 1000);
+
+  const fills = await getFillsFromCurrentSelection();
+  figma.ui.postMessage({ type: "INITIALIZE", collections, fills, settings });
 }
 
-async function getSettings() {
+async function actionCreateSwatches({ payload }) {
+  const { space, colorA, colorB, colors } = payload;
+  const frame = figma.createFrame();
+  frame.layoutMode = "HORIZONTAL";
+  frame.resize(SHAPE_WIDTH, SHAPE_HEIGHT);
+  frame.fills = [];
+  frame.name = `color-mix(in ${space}, ${colorA}, ${colorB})`;
+
+  const width = (1 / colors.length) * frame.width;
+  colors.forEach(({ rgb, colorA, colorB, space }, i) => {
+    const rect = figma.createRectangle();
+    rect.resize(width, frame.height);
+    rect.layoutGrow = 1;
+    rect.name = `color-mix(in ${space}, ${colorA}, ${colorB} ${
+      Math.round((i / (colors.length - 1)) * 100 * 100) / 100
+    }%)`;
+    rect.fills = [figmaSolidFromColor(rgb)];
+    frame.appendChild(rect);
+  });
+  selectAndFocusViewportOnNode(frame);
+  figma.notify("Generated swatches!");
+}
+
+async function actionCreateVariables({ payload, collection }) {
+  const { colors } = payload;
+  const variableCollection =
+    collection === "__CREATE_NEW_COLLECTION__"
+      ? figma.variables.createVariableCollection("CSS color-mix()")
+      : await figma.variables.getVariableCollectionByIdAsync(collection);
+
+  if (!variableCollection) {
+    figma.notify(`No collection with id "${collection}"`, {
+      error: true,
+    });
+    return;
+  }
+
+  try {
+    colors.forEach(({ rgb, colorA, colorB, space }, i) => {
+      const ratio = ((i + 1) / colors.length) * 100;
+      const variable = figma.variables.createVariable(
+        `${colorA.replace("#", "")}-${colorB.replace(
+          "#",
+          ""
+        )}/in ${space}/${Math.round(ratio * 10)}`,
+        variableCollection,
+        "COLOR"
+      );
+      variable.description = relevantCSSForType(
+        "FILL",
+        space,
+        colorA,
+        colorB,
+        ratio
+      );
+      variable.setVariableCodeSyntax("WEB", variable.description);
+      variable.setValueForMode(
+        variableCollection.defaultModeId,
+        figmaRGBFromRGB(rgb)
+      );
+    });
+    figma.notify(`Created ${colors.length} variables!`);
+  } catch (e) {
+    figma.notify(`Error: ${e.message}`, { error: true });
+  }
+}
+
+async function actionFillShapeWithColorOrGradient({ type, payload }) {
+  const { space, colorA, colorB, ratio, colors, color } = payload;
+  const shapeFromSelection = await getShapeForFillsFromSelection();
+  const shape = shapeFromSelection || figma.createFrame();
+  const newShape = !shapeFromSelection;
+  if (newShape) {
+    shape.resize(SHAPE_WIDTH, SHAPE_HEIGHT);
+  }
+
+  if (newShape || nodeCanBeRenamedSafely(shape)) {
+    shape.name = relevantCSSForType(type, space, colorA, colorB, ratio);
+  }
+
+  shape.fills = [
+    type === "GRADIENT"
+      ? figmaGradientFromColors(colors)
+      : figmaSolidFromColor(color),
+  ];
+  figma.notify(`Filled with ${type.toLowerCase()}!`);
+  if (newShape) {
+    selectAndFocusViewportOnNode(shape);
+  }
+}
+
+async function clientStorageRetrieveSettings() {
   return await figma.clientStorage.getAsync(CLIENT_STORAGE_KEY);
 }
 
-async function setSettings(args) {
+async function clientStorageSaveSettings(args) {
   return await figma.clientStorage.setAsync(CLIENT_STORAGE_KEY, args);
 }
 
-function getFills() {
+function figmaGradientFromColors(colors) {
+  return {
+    type: "GRADIENT_LINEAR",
+    gradientTransform: [
+      [1, 0, 0],
+      [0, 1, 0],
+    ],
+    gradientStops: colors.map(({ rgb }, i) => ({
+      position: i / (colors.length - 1),
+      color: Object.assign(figmaRGBFromRGB(rgb), { a: 1 }),
+    })),
+  };
+}
+
+function figmaRGBFromRGB({ r, g, b }) {
+  return {
+    r: r / 255,
+    g: g / 255,
+    b: b / 255,
+  };
+}
+
+function figmaSolidFromColor(color) {
+  return {
+    type: "SOLID",
+    color: figmaRGBFromRGB(color),
+    opacity: 1,
+  };
+}
+
+async function getFillsFromCurrentSelection() {
   const fills = [];
   if (figma.currentPage.selection.length === 2) {
     const fillSolidA = figma.currentPage.selection[0].fills.find(
@@ -90,143 +218,68 @@ function getFills() {
   return fills;
 }
 
-const shapeHeight = 50;
-const shapeWidth = 500;
+async function getShapeForFillsFromSelection() {
+  const selection = figma.currentPage.selection;
+  if (selection.length !== 1) {
+    return;
+  }
+  const node = selection[0];
+  if (!("fills" in node)) {
+    return;
+  }
+  if (!("children" in node)) {
+    return;
+  }
+  if (node.children.length !== 0) {
+    return;
+  }
+  return node;
+}
 
-figma.ui.onmessage = async (message) => {
-  if (message.type === "RESIZE") {
-    figma.ui.resize(message.width, message.height);
-  } else if (message.type === "SETTINGS") {
-    setSettings(message.settings);
-  } else if (message.type === "GRADIENT" || message.type === "FILL") {
-    let shape;
-    let newShape = false;
-    if (
-      figma.currentPage.selection.length === 1 &&
-      "fills" in figma.currentPage.selection[0] &&
-      (!("children" in figma.currentPage.selection[0]) ||
-        figma.currentPage.selection[0].children.length === 0)
-    ) {
-      shape = figma.currentPage.selection[0];
-    } else {
-      shape = figma.createRectangle();
-      shape.resize(shapeWidth, shapeHeight);
-      newShape = true;
-    }
-    if (
-      newShape ||
-      (shape.type === "RECTANGLE" &&
-        (shape.name.startsWith("linear-gradient(") ||
-          shape.name.startsWith("color-mix(")))
-    ) {
-      const { space, colorA, colorB, ratio } = message.payload;
-      shape.name =
-        message.type === "GRADIENT"
-          ? `linear-gradient(90deg in ${space}, ${colorA}, ${colorB})`
-          : `color-mix(in ${space}, ${colorA}, ${colorB} ${ratio}%)`;
-    }
-    shape.fills =
-      message.type === "GRADIENT"
-        ? [
-            {
-              type: "GRADIENT_LINEAR",
-              gradientTransform: [
-                [1, 0, 0],
-                [0, 1, 0],
-              ],
-              gradientStops: message.payload.colors.map(({ rgb }, i) => ({
-                position: i / (message.payload.colors.length - 1),
-                color: { r: rgb.r / 255, g: rgb.g / 255, b: rgb.b / 255, a: 1 },
-              })),
-            },
-          ]
-        : [
-            {
-              type: "SOLID",
-              color: {
-                r: message.payload.color.r / 255,
-                g: message.payload.color.g / 255,
-                b: message.payload.color.b / 255,
-              },
-            },
-          ];
-    figma.notify("Set fill!");
-    if (newShape) {
-      figma.currentPage.selection = [shape];
-      figma.viewport.scrollAndZoomIntoView(figma.currentPage.selection);
-      figma.viewport.zoom *= 0.6;
-    }
-  } else if (message.type === "SWATCHES") {
-    const frame = figma.createFrame();
-    frame.layoutMode = "HORIZONTAL";
-    frame.resize(shapeWidth, shapeHeight);
-    frame.fills = [];
-    const { space, colorA, colorB } = message.payload;
-    frame.name = `color-mix(in ${space}, ${colorA}, ${colorB})`;
-
-    const width = (1 / message.payload.colors.length) * frame.width;
-    message.payload.colors.forEach(({ rgb, colorA, colorB, space }, i) => {
-      const rect = figma.createRectangle();
-      rect.resize(width, frame.height);
-      rect.layoutGrow = 1;
-      rect.name = `color-mix(in ${space}, ${colorA}, ${colorB} ${
-        Math.round((i / (message.payload.colors.length - 1)) * 100 * 100) / 100
-      }%)`;
-      rect.fills = [
+async function getLocalVariableCollections() {
+  return (await figma.variables.getLocalVariableCollectionsAsync()).flatMap(
+    (collection) => {
+      if (collection.remote) {
+        return [];
+      }
+      return [
         {
-          type: "SOLID",
-          color: { r: rgb.r / 255, g: rgb.g / 255, b: rgb.b / 255 },
-          opacity: 1,
+          id: collection.id,
+          name: collection.name,
+          key: collection.id + "-" + collection.name,
         },
       ];
-      frame.appendChild(rect);
-    });
-    figma.currentPage.selection = [frame];
-    figma.viewport.scrollAndZoomIntoView(figma.currentPage.selection);
-    figma.viewport.zoom *= 0.6;
-    figma.notify("Generated swatches!");
-  } else if (message.type === "VARIABLES") {
-    const collection =
-      message.collection === "__CREATE_NEW_COLLECTION__"
-        ? figma.variables.createVariableCollection("CSS color-mix()")
-        : await figma.variables.getVariableCollectionByIdAsync(
-            message.collection
-          );
-
-    if (!collection) {
-      figma.notify(`No collection with id "${message.collection}"`, {
-        error: true,
-      });
-      return;
     }
+  );
+}
 
-    try {
-      message.payload.colors.forEach(({ rgb, colorA, colorB, space }, i) => {
-        const variable = figma.variables.createVariable(
-          `${colorA.replace("#", "")}-${colorB.replace(
-            "#",
-            ""
-          )}/in ${space}/${Math.round(
-            (i / (message.payload.colors.length - 1)) * 1000
-          )}`,
-          collection,
-          "COLOR"
-        );
-        variable.description = `color-mix(in ${space}, ${colorA}, ${colorB}, ${
-          (i / (message.payload.colors.length - 1)) * 100
-        }%)`;
-        variable.setVariableCodeSyntax("WEB", variable.description);
-        variable.setValueForMode(collection.defaultModeId, {
-          r: rgb.r / 255,
-          g: rgb.g / 255,
-          b: rgb.b / 255,
-        });
-      });
-      figma.notify("Created variables!");
-    } catch (e) {
-      figma.notify(e.message, { error: false });
-    }
-  } else {
-    console.log(message);
+function nodeCanBeRenamedSafely(node) {
+  if (node.type !== "FRAME") {
+    return false;
   }
-};
+  return (
+    node.name.startsWith("linear-gradient(") ||
+    node.name.startsWith("color-mix(")
+  );
+}
+
+function relevantCSSForType(type, space, colorA, colorB, ratio) {
+  if (type === "GRADIENT") {
+    return `linear-gradient(90deg in ${space}, ${colorA}, ${colorB})`;
+  }
+  ratio = ratio === undefined ? "" : ` ${ratio}%`;
+  return `color-mix(in ${space}, ${colorA}, ${colorB}${ratio})`;
+}
+
+function selectAndFocusViewportOnNode(node) {
+  figma.currentPage.selection = [node];
+  figma.viewport.scrollAndZoomIntoView(figma.currentPage.selection);
+  figma.viewport.zoom *= 0.6;
+}
+
+function variableCollectionsHaveChanged(collections1, collections2) {
+  return (
+    collections1.map(({ key }) => key).join("-") !==
+    collections2.map(({ key }) => key).join("-")
+  );
+}

@@ -7,11 +7,30 @@
   <title>CSS color-mix()</title>
   <style>
     :root {
+      --theme-color: var(--figma-color-text);
+      --theme-color-secondary: var(--figma-color-text-secondary);
+      --theme-background: var(--figma-color-bg);
+      --theme-background-primary: var(--figma-color-bg-brand);
+      --theme-text-onprimary: var(--figma-color-text-onbrand);
+      --theme-border-radius: 0.3125rem;
+      --theme-border-radius-large: 0.8125rem;
+      --theme-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      --theme-font-size: 0.6875rem;
+      --theme-font-size-small: 0.5875rem;
+      --theme-input-background: var(--figma-color-bg-secondary);
+      --theme-input-border: var(--figma-color-bg);
+      --theme-input-border-hover: var(--figma-color-border);
+      --theme-input-border-focus: var(--figma-color-border-selected);
+      --theme-input-height: 1.5rem;
+      --theme-spacing-small: 0.125rem;
+      --theme-spacing: 0.5rem;
+      --theme-spacing-large: 0.75rem;
       --color-a: #FF0000;
       --color-b: #00FF00;
       --ratio: 50;
       --space: oklab;
-      --computed: #fff
+      --computed: #fff;
+      --color-thumb-opacity: 1;
     }
 
     * {
@@ -20,35 +39,50 @@
 
     html,
     body {
+      font-family: var(--theme-font-family);
       height: 100%;
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      font-weight: bold;
     }
 
     body {
       --color: color-mix(in var(--space), var(--color-a), var(--color-b) calc(var(--ratio) * 1%));
       background: var(--color);
+      color: var(--theme-color);
+      display: flex;
+      font-size: var(--theme-font-size);
+    }
+
+    a {
+      color: var(--theme-color);
+    }
+
+    main,
+    #element-preview {
+      flex: 1;
+      height: 100%;
+    }
+
+    main {
+      background: var(--theme-background);
+      color: var(--theme-color);
       display: flex;
     }
 
-    #preview {
+    #element-preview {
       background: var(--gradient);
-      border-left: 2px solid color-mix(in lch, var(--computed), #000 40%);
       display: flex;
-      flex: 1;
       flex-direction: column;
       font-family: monospace;
-      font-size: 0.6rem;
-      height: 100%;
+      font-size: var(--theme-font-size-small);
       justify-content: safe center;
       overflow: auto;
 
 
       >span {
+        background: var(--color);
         display: block;
         font-weight: normal;
-        padding: 0.5rem;
+        padding: var(--theme-spacing);
 
         >span {
           color: var(--color);
@@ -59,34 +93,19 @@
       }
     }
 
-    a {
-      color: black;
-    }
-
-    main {
-      background: white;
-      display: flex;
-      width: 240px;
-    }
-
-    main,
-    #preview {
-      height: 100%;
-    }
-
     section {
       align-items: center;
       display: flex;
       flex: 1;
       flex-direction: column;
-      gap: 0.75rem;
-      padding: 0.5rem;
+      gap: var(--theme-spacing);
+      padding: var(--theme-spacing-large);
 
       >div {
         align-content: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.25rem;
+        gap: var(--theme-spacing-small);
         width: 100%;
 
         >* {
@@ -94,81 +113,115 @@
         }
 
         >p {
-          /* color: color-mix(in oklab, var(--computed), #fff 70%);
-          background-color: color-mix(in lch, var(--computed), #000 40%); */
-          border-radius: 1rem;
+          color: var(--theme-color-secondary);
+          display: flex;
           flex-basis: 100%;
-          font-size: 0.6rem;
-          text-transform: uppercase;
+          font-weight: 500;
+          justify-content: space-between;
           margin: 0;
           width: 100%;
+
+          >a {
+            text-decoration: none;
+          }
         }
       }
 
-      >div#output-css {
+      >div#output-preview {
         flex-direction: column;
       }
     }
 
+    input[type="color"] {
+      aspect-ratio: 1/1;
+      flex: none;
+      padding: var(--theme-spacing-small);
+      width: auto;
+    }
+
+    input[type="color" i]::-webkit-color-swatch-wrapper {
+      border: none;
+      padding: 0;
+    }
+
+    input[type="color" i]::-webkit-color-swatch {
+      border: none;
+      border-radius: calc(var(--theme-border-radius) - var(--theme-spacing-small));
+      height: 100%;
+      width: 100%;
+    }
+
+    input[type="color"],
     input[type="range"] {
       appearance: none;
       border: none;
     }
 
+    input[type="range"] {
+      padding: var(--theme-spacing-small);
+    }
+
     input[type="range"]::-webkit-slider-runnable-track {
       background: var(--gradient);
-      border-radius: 0.25rem;
-      border: 1px solid black;
-      height: calc(100% - 0.5rem);
+      border-radius: calc(var(--theme-border-radius) - var(--theme-spacing-small));
+      height: 100%;
+      width: 100%;
     }
 
     input[type="range"]::-moz-range-track {
       background: var(--gradient);
-      border-radius: 0.25rem;
-      border: 1px solid black;
-      height: calc(100% - 0.5rem);
+      border-radius: calc(var(--theme-border-radius) - var(--theme-spacing-small));
+      height: 100%;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       appearance: none;
+      aspect-ratio: 1/1;
       background: var(--color);
-      border-radius: 0.25rem;
-      border: 1px solid black;
-      margin-top: -0.25rem;
-      height: calc(100% + 0.5rem);
-      width: 0.5rem;
+      border-radius: var(--theme-border-radius);
+      box-shadow: 0 0 0 1px var(--theme-input-border-hover), 0px 1px 4px var(--theme-background);
+      height: 100%;
+      opacity: var(--color-thumb-opacity);
+      transform: scale(0.8);
+      width: auto;
     }
 
     input[type="range"]::-moz-range-thumb {
+      aspect-ratio: 1/1;
       background: var(--color);
-      border-radius: 0.25rem;
-      border: 1px solid black;
-      margin-top: -0.25rem;
-      height: calc(100% + 0.5rem);
-      width: 0.5rem;
+      border-radius: var(--theme-border-radius);
+      box-shadow: 0 0 0 1px var(--theme-input-border-hover), 0px 1px 4px var(--theme-background);
+      height: 100%;
+      opacity: var(--color-thumb-opacity);
+      transform: scale(0.8);
+      width: auto;
     }
 
     button,
     input,
     select,
     textarea {
-      /* background-color: color-mix(in oklab, var(--computed), #fff 90%); */
-      border: 1px solid currentColor;
-      border-radius: 0.25rem;
-      /* color: color-mix(in lch, var(--computed), #000 40%); */
-      font-size: 0.8rem;
-      /* font-weight: bold; */
+      background: var(--theme-input-background);
+      border: 1px solid var(--theme-input-border);
+      border-radius: var(--theme-border-radius);
+      color: var(--theme-color);
+      font-family: var(--theme-font-family);
+      font-size: var(--theme-font-size);
+
+      &:hover {
+        border-color: var(--theme-input-border-hover);
+      }
 
       &:focus-visible {
         outline: none;
-        /* box-shadow: 0 0 0 1px currentColor; */
+        border-color: var(--theme-input-border-focus);
       }
     }
 
     button,
     input,
     select {
-      height: 1.6rem;
+      height: var(--theme-input-height);
       margin: 0;
     }
 
@@ -178,25 +231,20 @@
       white-space: nowrap;
     }
 
-    #space,
-    #hue {
-      width: 50%;
-    }
-
     button,
     input[type="color"] {
       cursor: pointer;
     }
 
-    #collections {
-      flex: 3;
-      width: 75%;
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
-    #generate-type {
-      flex: 4;
-      flex-basis: 100%;
-      width: 100%;
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
     }
 
     input {
@@ -204,16 +252,15 @@
     }
 
     button {
-      background: var(--color);
-      border-radius: 1rem;
-      margin-top: auto;
-      width: 100%;
+      background: var(--theme-background-primary);
+      color: var(--theme-text-onprimary);
+      width: auto;
+    }
 
-      span {
-        color: var(--color);
-        filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
-        mix-blend-mode: luminosity;
-      }
+    button#button-preview {
+      background: var(--figma-color-bg-secondary);
+      color: var(--theme-text-onsecondary);
+      flex: initial;
     }
 
     input[type="text"] {
@@ -223,9 +270,44 @@
       width: 100%;
     }
 
+    #select-space,
+    #select-hue {
+      width: 50%;
+    }
+
+    #select-collection {
+      flex: 3;
+      width: 75%;
+    }
+
+    #select-type {
+      flex: 4;
+      flex-basis: 100%;
+      width: 100%;
+    }
+
     canvas {
       background: color-mix(in var(--space), var(--color-a), var(--color-b) calc(var(--ratio) * 1%));
       display: none;
+    }
+
+    body.preview-hide {
+      #element-preview {
+        display: none;
+      }
+    }
+
+    body.type-fill #stops-container {
+      display: none;
+    }
+
+    body:not(.type-variables) #collection-container {
+      display: none;
+    }
+
+    body.type-variables,
+    body.type-swatches {
+      --color-thumb-opacity: 0;
     }
   </style>
 </head>
@@ -235,90 +317,90 @@
   <main>
     <section>
       <div>
-        <p>Color Mix</p>
-        <!-- <p style="background: var(--color)">&nbsp</p> -->
-        <input id="color-a" type="color" />
-        <input id="ratio" type="range" min="0" max="100" step="1" />
-        <input id="color-b" type="color" />
-      </div>
-      <div>
-        <p>Color Space</p>
-        <!-- <p style="background: var(--gradient)">&nbsp</p> -->
-        <select id="space"></select>
-        <select id="hue"></select>
-      </div>
-
-      <div>
-        <p>Output (<a href="#" id="css">CSS</a>)</p>
-        <select id="generate-type">
+        <p>Output Type</p>
+        <select id="select-type">
+          <option value="fill">Color Fill</option>
+          <option value="gradient">Gradient Fill</option>
           <option value="variables">Variables</option>
           <option value="swatches">Swatches</option>
-          <option value="gradient">Gradient</option>
-          <option value="fill">Fill</option>
         </select>
-        <input title="stops" id="stops" type="number" value="10" min="1" max="1000" step="1" />
-        <select id="collections"></select>
       </div>
 
-      <button id="generate">Generate</button>
+      <div>
+        <p><span>Color A</span><span>Mix</span><span>Color B</span></p>
+        <input id="input-color-a" type="color" />
+        <input id="input-ratio" type="range" min="0" max="100" step="1" />
+        <input id="input-color-b" type="color" />
+      </div>
+
+      <div>
+        <p>Color Blend</p>
+        <select id="select-space">
+          <optgroup label="Polar Color Spaces">
+            <option value="hsl">hsl</option>
+            <option value="hwb">hwb</option>
+            <option value="lch">lch</option>
+            <option selected value="oklch">oklch</option>
+          </optgroup>
+          <optgroup label="Rectangular Color Spaces">
+            <option value="srgb">srgb</option>
+            <option value="srgb-linear">srgb-linear</option>
+            <option value="lab">lab</option>
+            <option value="oklab">oklab</option>
+            <option value="xyz">xyz</option>
+          </optgroup>
+        </select>
+        <select id="select-hue">
+          <option selected value="shorter hue">shorter hue</option>
+          <option value="longer hue">longer hue</option>
+          <option value="increasing hue">increasing hue</option>
+          <option value="decreasing hue">decreasing hue</option>
+        </select>
+      </div>
+
+      <div id="stops-container">
+        <p id="stops-label">Color Stops</p>
+        <input id="input-stops" title="stops" type="number" value="10" min="1" max="1000" step="1" />
+      </div>
+
+      <div id="collection-container">
+        <p id="collection-label">Variable Collection</p>
+        <select id="select-collection"></select>
+      </div>
+
+      <div style="margin-top: auto;">
+        <button id="button-generate">Generate</button>
+        <button id="button-preview">Preview</button>
+      </div>
     </section>
   </main>
 
-  <div id="preview" style="display: none"></div>
+  <div id="element-preview"></div>
 
   <script>
-    const colorA = document.getElementById("color-a");
-    const colorB = document.getElementById("color-b");
-    const ratio = document.getElementById("ratio");
-    const space = document.getElementById("space");
-    const preview = document.getElementById("preview");
-    const css = document.getElementById("css");
+    const WINDOW_HEIGHT = 300;
+    const WINDOW_WIDTH_SMALL = 240;
+    const WINDOW_WIDTH_LARGE = 480;
 
-    const generateSelect = document.getElementById("generate-type");
-    const generate = document.getElementById("generate");
-    const stops = document.getElementById("stops");
-    const collectionsSelect = document.getElementById("collections");
-    const hue = document.getElementById("hue");
+    const buttonGenerate = document.getElementById("button-generate");
+    const buttonPreview = document.getElementById("button-preview");
+    const elementPreview = document.getElementById("element-preview");
+    const inputColorA = document.getElementById("input-color-a");
+    const inputColorB = document.getElementById("input-color-b");
+    const inputRatio = document.getElementById("input-ratio");
+    const inputStops = document.getElementById("input-stops");
+    const selectCollection = document.getElementById("select-collection");
+    const selectHue = document.getElementById("select-hue");
+    const selectSpace = document.getElementById("select-space");
+    const selectType = document.getElementById("select-type");
 
-    const gradientsNoWork = ["display-p3", "a98-rgb", "prophoto-rgb", "rec2020"];
-    const rectangularColorSpaces = [
-      "srgb",
-      "srgb-linear",
-      // "display-p3",
-      // "a98-rgb",
-      // "prophoto-rgb",
-      // "rec2020",
-      "lab",
-      "oklab",
-      "xyz",
-      // "xyz-d50",
-      // "xyz-d65"
-    ].filter((a) => !gradientsNoWork.includes(a));
     const polarColorSpaces = ["hsl", "hwb", "lch", "oklch"];
-    const hueInterpolationMethods = [
-      "shorter hue",
-      "longer hue",
-      "increasing hue",
-      "decreasing hue"
-    ];
-
-
-    space.innerHTML = `<optgroup label="Polar Color Spaces">
-${polarColorSpaces.map((space) => `<option value="${space}">${space}</option>`)}
-</optgroup>
-<optgroup label="Rectangular Color Spaces">
-${rectangularColorSpaces.map(
-      (space) => `<option value="${space}">${space}</option>`
-    )}
-</optgroup>`;
-    hue.innerHTML = hueInterpolationMethods.map(
-      (method) => `<option value="${method}">${method}</option>`
-    );
 
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     canvas.height = canvas.width = 4;
     document.body.appendChild(canvas);
+
     let colors = [];
     let color = { r: 0, g: 0, b: 0 };
 
@@ -326,219 +408,262 @@ ${rectangularColorSpaces.map(
       if (pluginMessage.type === "INITIALIZE") {
         initialize(pluginMessage);
       } else if (pluginMessage.type === "COLLECTIONS") {
-        updateCollections(pluginMessage.collections)
+        handleCollectionsChange(pluginMessage.collections)
         update();
       } else if (pluginMessage.type === "FILLS") {
-        updateFills(pluginMessage.fills)
+        handleFillsInSelection(pluginMessage.fills)
         update();
       } else {
         console.log({ pluginMessage })
       }
     }
 
-    css.addEventListener("click", (e) => {
-      e.preventDefault();
-      if (preview.style.display === "none") {
-        showCSS();
-      } else {
-        hideCSS();
-      }
-    })
-
-    function hideCSS() {
-      preview.style.display = "none";
-      parent.postMessage({
-        pluginMessage: {
-          type: "RESIZE",
-          height: 240,
-          width: 240
-        },
-      }, "*");
-    }
-    function showCSS() {
-      parent.postMessage({
-        pluginMessage: {
-          type: "RESIZE",
-          height: 240,
-          width: 480
-        },
-      }, "*");
-      setTimeout(() => {
-        preview.style.display = "flex";
-      }, 50);
-    }
-
-    function updateCollections(collections) {
-      const value = collectionsSelect.value || (collections.length ? collections[0].id : "__CREATE_NEW_COLLECTION__");
-      collectionsSelect.innerHTML = `<option value="__CREATE_NEW_COLLECTION__">+ New Variable Collection</option>${collections.map((collection) => `<option value="${collection.id}">${collection.name}</option>`).join("")}`
-      if (collectionsSelect.innerHTML.match(value)) {
-        collectionsSelect.value = value;
-      }
-    }
-
-    function updateFills(fills) {
-      if (fills.length) {
-        colorA.value = rgbToHex(fills[0])
-        if (fills[1]) {
-          colorB.value = rgbToHex(fills[1])
-        }
-      }
-    }
-
-    function saveSettings() {
-      parent.postMessage({
-        pluginMessage: {
-          type: "SETTINGS",
-          settings: {
-            colorA: colorA.value,
-            colorB: colorB.value,
-            ratio: ratio.value,
-            space: space.value,
-            hue: hue.value,
-            type: generateSelect.value,
-          },
-        },
-      }, "*");
-    }
-
-    function updateSettings(settings = {}, fills) {
-      colorA.value = fills[0] ? rgbToHex(fills[0]) : settings.colorA || "#FFFF00";
-      colorB.value = fills[1] ? rgbToHex(fills[1]) : settings.colorB || "#0000FF";
-      ratio.value = settings.ratio || "50";
-      space.value = settings.space || "oklch";
-      hue.value = settings.hue || hueInterpolationMethods[0];
-      generateSelect.value = settings.type || "swatches";
-    }
-
-    function handleSelectChange() {
-      collectionsSelect.style.display = generateSelect.value === "variables" ? "block" : "none";
-      stops.style.display = generateSelect.value === "fill" ? "none" : "flex";
-      if (generateSelect.value === "variables") {
-        generate.innerHTML = "<span>Create Variables</span>";
-      } else if (generateSelect.value === "fill") {
-        generate.innerHTML = "<span>Fill with Color</span>";
-      } else if (generateSelect.value === "gradient") {
-        generate.innerHTML = "<span>Fill with Gradient</span>";
-      } else if (generateSelect.value === "swatches") {
-        generate.innerHTML = "<span>Generate Swatches</span>";
-      }
-    }
-
     function initialize({ collections, fills, settings }) {
-      updateCollections(collections);
-      updateSettings(settings, fills)
-      handleSelectChange()
+      handleCollectionsChange(collections);
+      handleSettingsFromClientStorage(settings, fills)
+      handleTypeSelectChange()
 
       update();
 
-      generateSelect.addEventListener("change", () => { handleSelectChange(); update() });
-
-      generate.addEventListener("click", () => {
-        const type = generateSelect.value.toUpperCase();
+      buttonGenerate.addEventListener("click", () => {
+        const type = selectType.value.toUpperCase();
         parent.postMessage({
           pluginMessage: {
             payload: {
               color,
               colors,
-              ratio: ratio.value,
+              ratio: inputRatio.value,
               space: document.body.style.getPropertyValue("--space"),
-              colorA: colorA.value,
-              colorB: colorB.value
+              colorA: inputColorA.value,
+              colorB: inputColorB.value
             },
             type,
-            collection: collectionsSelect.value
+            collection: selectCollection.value
           },
         }, "*");
       });
 
-      colorA.addEventListener("input", update);
-      colorB.addEventListener("input", update);
-      ratio.addEventListener("input", update);
-      space.addEventListener("change", update);
-      hue.addEventListener("change", update);
-      stops.addEventListener("input", update);
+      selectType.addEventListener("change", () => { handleTypeSelectChange(); update() });
+
+      inputColorA.addEventListener("input", update);
+      inputColorB.addEventListener("input", update);
+      inputRatio.addEventListener("input", update);
+      selectSpace.addEventListener("change", update);
+      selectHue.addEventListener("change", update);
+      inputStops.addEventListener("input", update);
+
+      buttonPreview.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (document.body.classList.contains("preview-hide")) {
+          performPreviewShow();
+        } else {
+          performPreviewHide();
+        }
+        performSaveSettings();
+      })
     }
 
-
     function update() {
-      saveSettings();
+      performSaveSettings();
 
-      document.body.style.setProperty("--color-a", colorA.value);
-      document.body.style.setProperty("--color-b", colorB.value);
-      document.body.style.setProperty("--ratio", ratio.value);
+      document.body.style.setProperty("--color-a", inputColorA.value);
+      document.body.style.setProperty("--color-b", inputColorB.value);
+      document.body.style.setProperty("--ratio", inputRatio.value);
       document.body.style.setProperty(
         "--ratio-a",
-        50 - Math.min(50, parseInt(ratio.value))
+        50 - Math.min(50, parseInt(inputRatio.value))
       );
       document.body.style.setProperty(
         "--ratio-b",
-        100 - (Math.max(50, parseInt(ratio.value)) - 50)
+        100 - (Math.max(50, parseInt(inputRatio.value)) - 50)
       );
-      const isPolar = polarColorSpaces.includes(space.value);
-      hue.style.display = isPolar ? "inline" : "none";
-      const spaceValue = isPolar ? `${space.value} ${hue.value}` : space.value;
-      document.body.style.setProperty("--space", spaceValue);
-      const gradientArgs = [];
-      gradientArgs.push(`90deg in ${spaceValue}`)
-      gradientArgs.push("var(--color-a)")
-      gradientArgs.push("var(--color-b)")
+
+      const isPolar = polarColorSpaces.includes(selectSpace.value);
+      selectHue.style.display = isPolar ? "inline" : "none";
+      const colorSpace = isPolar ? `${selectSpace.value} ${selectHue.value}` : selectSpace.value;
+
+      const gradientArgs = [
+        `90deg in ${colorSpace}`,
+        "var(--color-a)",
+        "var(--color-b)"
+      ];
+
+      document.body.style.setProperty("--space", colorSpace);
       document.body.style.setProperty(
         "--gradient",
         `linear-gradient(${gradientArgs.join(",")})`
       );
+
       const colorString = window.getComputedStyle(document.body).backgroundColor;
+
       document.body.style.setProperty(
         "--computed",
         colorString
       );
 
+      // Canvas magic to translate to rgb for Figma.
       context.fillStyle = colorString;
       context.fillRect(0, 0, canvas.width, canvas.height);
       const { data } = context.getImageData(0, 0, 1, 1);
       const [r, g, b] = data;
       color = { r, g, b, }
 
-      const gradient = window.getComputedStyle(
-        preview
-      ).backgroundImage;
+      const count = parseInt(inputStops.value);
+
       colors = [];
-      const count = parseInt(stops.value);
-      for (let i = 0; i <= count; i++) {
-        canvas.style.setProperty("--ratio", (i / count) * 100);
+      for (let i = 0; i < count; i++) {
+        canvas.style.setProperty("--ratio", (i / (count - 1)) * 100);
         context.fillStyle = window.getComputedStyle(canvas).backgroundColor;
         context.fillRect(0, 0, 1, 1);
         const {
           data: [r, g, b, a]
         } = context.getImageData(0, 0, 1, 1);
         colors.push({
-          space: spaceValue,
-          colorA: colorA.value,
-          colorB: colorB.value,
+          space: colorSpace,
+          colorA: inputColorA.value,
+          colorB: inputColorB.value,
           percent: i,
           rgb: { r, g, b },
         });
       }
 
-      // cssComputed.value = colorString;
-      // cssBackgroundColor.value = `color-mix(in ${spaceValue}, ${colorA.value}, ${colorB.value} ${ratio.value}%)`;
-      // cssBackgroundImage.value = `linear-gradient(90deg in ${spaceValue}, ${colorA.value}, ${colorB.value})`;
-      if (generateSelect.value === "fill") {
-        preview.innerHTML = `
-          <span style="background:var(--color)"><span style="color:var(--color)">color-mix(in ${spaceValue},
-  ${colorA.value}, ${colorB.value} ${ratio.value}%
-)</span></span>
-          <span style="background:var(--color)"><span style="color:var(--color)">/* computed */
-${colorString}</span></span>`;
-      } else if (generateSelect.value === "gradient") {
-        preview.innerHTML = `<span style="background:var(--color)"><span style="color:var(--color)">linear-gradient(
-  90deg in ${spaceValue},
-  ${colorA.value}, ${colorB.value}
-)</span></span>`;
-      } else if (generateSelect.value === "variables" || generateSelect.value === "swatches") {
-        preview.innerHTML = colors.map(({ percent }) => (`<span style="--color: color-mix(in ${spaceValue}, ${colorA.value}, ${colorB.value} ${percent / (colors.length - 1) * 100}%); background: var(--color)"><span style="color: var(--color)">color-mix(in ${spaceValue},
-  ${colorA.value}, ${colorB.value} ${Math.round(percent / (colors.length - 1) * 100000) / 1000}%
-)</span></span>`)).join("\n");
+      if (selectType.value === "fill") {
+        renderPreviewFill(colorSpace, colorString);
+      } else if (selectType.value === "gradient") {
+        renderPreviewGradient(colorSpace);
+      } else if (selectType.value === "variables" || selectType.value === "swatches") {
+        renderPreviewSwatches(colorSpace)
       }
+    }
+
+    function handleCollectionsChange(collections) {
+      const value = selectCollection.value || (collections.length ? collections[0].id : "__CREATE_NEW_COLLECTION__");
+      selectCollection.innerHTML = `<option value="__CREATE_NEW_COLLECTION__">+ New Variable Collection</option>${collections.map((collection) => `<option value="${collection.id}">${collection.name}</option>`).join("")}`
+      if (selectCollection.innerHTML.match(value)) {
+        selectCollection.value = value;
+      }
+    }
+
+    function handleFillsInSelection(fills) {
+      if (fills.length) {
+        inputColorA.value = rgbToHex(fills[0])
+        if (fills[1]) {
+          inputColorB.value = rgbToHex(fills[1])
+        }
+      }
+    }
+
+    function handleSettingsFromClientStorage(settings = {}, fills) {
+      inputColorA.value = fills[0] ? rgbToHex(fills[0]) : settings.colorA || "#FFFF00";
+      inputColorB.value = fills[1] ? rgbToHex(fills[1]) : settings.colorB || "#0000FF";
+      inputRatio.value = settings.ratio || "50";
+      selectSpace.value = settings.space;
+      selectHue.value = settings.hue;
+      selectType.value = settings.type || "swatches";
+      if (settings.preview) {
+        performPreviewShow();
+      } else {
+        performPreviewHide();
+      }
+    }
+
+    function handleTypeSelectChange() {
+      document.body.className = document.body.className.replace(/type-[^ ]+/, "");
+      document.body.classList.add(`type-${selectType.value}`);
+      const text = Object.values(selectType.options).find(option => option.value === selectType.value).text;
+      buttonGenerate.innerHTML = text;
+    }
+
+    function performPreviewHide() {
+      document.body.classList.add("preview-hide");
+      parent.postMessage({
+        pluginMessage: {
+          type: "RESIZE",
+          height: WINDOW_HEIGHT,
+          width: WINDOW_WIDTH_SMALL
+        },
+      }, "*");
+    }
+
+    function performPreviewShow() {
+      parent.postMessage({
+        pluginMessage: {
+          type: "RESIZE",
+          height: WINDOW_HEIGHT,
+          width: WINDOW_WIDTH_LARGE
+        },
+      }, "*");
+      document.body.classList.remove("preview-hide");
+    }
+
+    function performSaveSettings() {
+      parent.postMessage({
+        pluginMessage: {
+          type: "SETTINGS",
+          settings: {
+            colorA: inputColorA.value,
+            colorB: inputColorB.value,
+            ratio: inputRatio.value,
+            space: selectSpace.value,
+            hue: selectHue.value,
+            type: selectType.value,
+            preview: !document.body.classList.contains("preview-hide")
+          },
+        },
+      }, "*");
+    }
+
+    // Also in code.js
+    function relevantCSSForType(type, space, colorA, colorB, ratio) {
+      if (type === "GRADIENT") {
+        return `linear-gradient(90deg in ${space}, ${colorA}, ${colorB})`;
+      }
+      ratio = ratio === undefined ? "" : ` ${ratio}%`;
+      return `color-mix(in ${space}, ${colorA}, ${colorB}${ratio})`;
+    }
+
+    function renderPreviewFill(colorSpace, computed) {
+      const colorA = inputColorA.value;
+      const colorB = inputColorB.value;
+      const ratio = inputRatio.value;
+      const [prefix, content, _] = computed.split(/[\(\)]/);
+      const computedFormatted = [`${prefix}(`, content.split(" ").map(a => `  ${a}`).join("\n"), ")"].join("\n");
+      elementPreview.innerHTML = [
+        [
+          `<span><span>color-mix(in ${colorSpace},`,
+          `  ${colorA}, ${colorB} ${ratio}%`,
+          `)</span></span>`
+        ].join("\n"),
+        [
+          `<span><span>/* computed */`,
+          `${computedFormatted}</span></span>`
+        ].join("\n")
+      ].join("")
+    }
+
+    function renderPreviewGradient(colorSpace) {
+      const colorA = inputColorA.value;
+      const colorB = inputColorB.value;
+      elementPreview.innerHTML = [
+        `<span><span>linear-gradient(`,
+        `  90deg in ${colorSpace},`,
+        `  ${colorA}, ${colorB}`,
+        `)</span></span>`
+      ].join("\n")
+    }
+
+    function renderPreviewSwatches(colorSpace) {
+      const colorA = inputColorA.value;
+      const colorB = inputColorB.value;
+      elementPreview.innerHTML = colors.map(({ percent }) => {
+        const ratio = percent / (colors.length - 1) * 100;
+        const color = relevantCSSForType("FILL", colorSpace, colorA, colorB, ratio);
+        return [
+          `<span style="--color: ${color};"><span>color-mix(in ${colorSpace},`,
+          `  ${colorA}, ${colorB} ${Math.round(ratio * 1000) / 1000}%`,
+          `)</span></span>`
+        ].join("\n")
+      }).join("\n")
     }
 
     function rgbToHex({ r, g, b }) {
