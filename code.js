@@ -150,6 +150,7 @@ figma.ui.onmessage = async (message) => {
               },
             },
           ];
+    figma.notify("Set fill!");
     if (newShape) {
       figma.currentPage.selection = [shape];
       figma.viewport.scrollAndZoomIntoView(figma.currentPage.selection);
@@ -183,6 +184,7 @@ figma.ui.onmessage = async (message) => {
     figma.currentPage.selection = [frame];
     figma.viewport.scrollAndZoomIntoView(figma.currentPage.selection);
     figma.viewport.zoom *= 0.6;
+    figma.notify("Generated swatches!");
   } else if (message.type === "VARIABLES") {
     const collection =
       message.collection === "__CREATE_NEW_COLLECTION__"
@@ -220,6 +222,7 @@ figma.ui.onmessage = async (message) => {
           b: rgb.b / 255,
         });
       });
+      figma.notify("Created variables!");
     } catch (e) {
       figma.notify(e.message, { error: false });
     }
