@@ -315,15 +315,9 @@ ${rectangularColorSpaces.map(
       (method) => `<option value="${method}">${method}</option>`
     );
 
-    colorA.value = "#FFFF00";
-    colorB.value = "#0000FF";
-    ratio.value = "50";
-    space.value = "oklch";
-    hue.value = hueInterpolationMethods[0];
-
     const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d", { colorSpace: "display-p3" });
-    canvas.height = canvas.width = 1;
+    const context = canvas.getContext("2d");
+    canvas.height = canvas.width = 4;
     document.body.appendChild(canvas);
     let colors = [];
     let color = { r: 0, g: 0, b: 0 };
@@ -333,8 +327,10 @@ ${rectangularColorSpaces.map(
         initialize(pluginMessage);
       } else if (pluginMessage.type === "COLLECTIONS") {
         updateCollections(pluginMessage.collections)
+        update();
       } else if (pluginMessage.type === "FILLS") {
         updateFills(pluginMessage.fills)
+        update();
       } else {
         console.log({ pluginMessage })
       }
@@ -387,7 +383,31 @@ ${rectangularColorSpaces.map(
           colorB.value = rgbToHex(fills[1])
         }
       }
-      update();
+    }
+
+    function saveSettings() {
+      parent.postMessage({
+        pluginMessage: {
+          type: "SETTINGS",
+          settings: {
+            colorA: colorA.value,
+            colorB: colorB.value,
+            ratio: ratio.value,
+            space: space.value,
+            hue: hue.value,
+            type: generateSelect.value,
+          },
+        },
+      }, "*");
+    }
+
+    function updateSettings(settings = {}, fills) {
+      colorA.value = fills[0] ? rgbToHex(fills[0]) : settings.colorA || "#FFFF00";
+      colorB.value = fills[1] ? rgbToHex(fills[1]) : settings.colorB || "#0000FF";
+      ratio.value = settings.ratio || "50";
+      space.value = settings.space || "oklch";
+      hue.value = settings.hue || hueInterpolationMethods[0];
+      generateSelect.value = settings.type || "swatches";
     }
 
     function handleSelectChange() {
@@ -402,19 +422,16 @@ ${rectangularColorSpaces.map(
       } else if (generateSelect.value === "swatches") {
         generate.innerHTML = "<span>Generate Swatches</span>";
       }
-      update();
     }
 
-    function initialize({ collections, fills }) {
+    function initialize({ collections, fills, settings }) {
       updateCollections(collections);
-      updateFills(fills);
+      updateSettings(settings, fills)
+      handleSelectChange()
 
       update();
 
-      handleSelectChange()
-
-
-      generateSelect.addEventListener("change", handleSelectChange);
+      generateSelect.addEventListener("change", () => { handleSelectChange(); update() });
 
       generate.addEventListener("click", () => {
         const type = generateSelect.value.toUpperCase();
@@ -444,6 +461,8 @@ ${rectangularColorSpaces.map(
 
 
     function update() {
+      saveSettings();
+
       document.body.style.setProperty("--color-a", colorA.value);
       document.body.style.setProperty("--color-b", colorB.value);
       document.body.style.setProperty("--ratio", ratio.value);
@@ -474,10 +493,9 @@ ${rectangularColorSpaces.map(
       );
 
       context.fillStyle = colorString;
-      context.fillRect(0, 0, 1, 1);
-      const {
-        data: [r, g, b, a]
-      } = context.getImageData(0, 0, 1, 1);
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      const { data } = context.getImageData(0, 0, 1, 1);
+      const [r, g, b] = data;
       color = { r, g, b, }
 
       const gradient = window.getComputedStyle(

@@ -1,4 +1,7 @@
 console.clear();
+
+const CLIENT_STORAGE_KEY = "css-color-mix";
+
 start();
 
 async function getCollections() {
@@ -33,13 +36,22 @@ async function start() {
     }
   }, 1000);
   const fills = getFills();
-  figma.ui.postMessage({ type: "INITIALIZE", collections, fills });
+  const settings = await getSettings();
+  figma.ui.postMessage({ type: "INITIALIZE", collections, fills, settings });
   figma.on("selectionchange", () => {
     const fills = getFills();
     if (fills.length) {
       figma.ui.postMessage({ type: "FILLS", fills });
     }
   });
+}
+
+async function getSettings() {
+  return await figma.clientStorage.getAsync(CLIENT_STORAGE_KEY);
+}
+
+async function setSettings(args) {
+  return await figma.clientStorage.setAsync(CLIENT_STORAGE_KEY, args);
 }
 
 function getFills() {
@@ -84,12 +96,16 @@ const shapeWidth = 500;
 figma.ui.onmessage = async (message) => {
   if (message.type === "RESIZE") {
     figma.ui.resize(message.width, message.height);
+  } else if (message.type === "SETTINGS") {
+    setSettings(message.settings);
   } else if (message.type === "GRADIENT" || message.type === "FILL") {
     let shape;
     let newShape = false;
     if (
       figma.currentPage.selection.length === 1 &&
-      "fills" in figma.currentPage.selection[0]
+      "fills" in figma.currentPage.selection[0] &&
+      (!("children" in figma.currentPage.selection[0]) ||
+        figma.currentPage.selection[0].children.length === 0)
     ) {
       shape = figma.currentPage.selection[0];
     } else {
@@ -107,7 +123,7 @@ figma.ui.onmessage = async (message) => {
       shape.name =
         message.type === "GRADIENT"
           ? `linear-gradient(90deg in ${space}, ${colorA}, ${colorB})`
-          : `color-mix(in ${space}, ${colorA}, ${colorB}, ${ratio}%)`;
+          : `color-mix(in ${space}, ${colorA}, ${colorB} ${ratio}%)`;
     }
     shape.fills =
       message.type === "GRADIENT"
@@ -152,7 +168,7 @@ figma.ui.onmessage = async (message) => {
       const rect = figma.createRectangle();
       rect.resize(width, frame.height);
       rect.layoutGrow = 1;
-      rect.name = `color-mix(in ${space}, ${colorA}, ${colorB}, ${
+      rect.name = `color-mix(in ${space}, ${colorA}, ${colorB} ${
         Math.round((i / (message.payload.colors.length - 1)) * 100 * 100) / 100
       }%)`;
       rect.fills = [

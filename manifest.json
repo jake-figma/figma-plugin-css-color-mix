@@ -1,11 +1,12 @@
 {
   "name": "CSS color-mix()",
-  "id": "01231230123912312312123",
+  "id": "1418382040312723873",
   "api": "1.0.0",
   "editorType": ["figma"],
   "permissions": [],
   "main": "code.js",
   "ui": "index.html",
+  "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["none"]
   }
