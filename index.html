@@ -571,7 +571,7 @@
       document.body.className = document.body.className.replace(/type-[^ ]+/, "");
       document.body.classList.add(`type-${selectType.value}`);
       const text = Object.values(selectType.options).find(option => option.value === selectType.value).text;
-      buttonGenerate.innerHTML = text;
+      buttonGenerate.innerHTML = `Create ${text}`;
     }
 
     function performPreviewHide() {
