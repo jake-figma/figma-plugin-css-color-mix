@@ -557,8 +557,8 @@
       inputColorA.value = fills[0] ? rgbToHex(fills[0]) : settings.colorA || "#FFFF00";
       inputColorB.value = fills[1] ? rgbToHex(fills[1]) : settings.colorB || "#0000FF";
       inputRatio.value = settings.ratio || "50";
-      selectSpace.value = settings.space;
-      selectHue.value = settings.hue;
+      selectSpace.value = settings.space || "hsl";
+      selectHue.value = settings.hue || "shorter hue";
       selectType.value = settings.type || "swatches";
       if (settings.preview) {
         performPreviewShow();

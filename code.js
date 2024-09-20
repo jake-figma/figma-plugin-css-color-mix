@@ -13,7 +13,10 @@ async function initialize() {
   const settings = await clientStorageRetrieveSettings();
   figma.showUI(__html__, {
     height: WINDOW_HEIGHT,
-    width: settings.preview === false ? WINDOW_WIDTH_SMALL : WINDOW_WIDTH_LARGE,
+    width:
+      settings && settings.preview === false
+        ? WINDOW_WIDTH_SMALL
+        : WINDOW_WIDTH_LARGE,
     themeColors: true,
   });
 
@@ -92,7 +95,7 @@ async function actionCreateVariables({ payload, collection }) {
 
   try {
     colors.forEach(({ rgb, colorA, colorB, space }, i) => {
-      const ratio = ((i + 1) / colors.length) * 100;
+      const ratio = (i / (colors.length - 1)) * 100;
       const variable = figma.variables.createVariable(
         `${colorA.replace("#", "")}-${colorB.replace(
           "#",
